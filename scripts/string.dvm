@@ -1,0 +1,4 @@
+PUSH_STRING "Hello, Sailor!"
+CALL_NATIVE 0  1
+
+HALT

@@ -1,0 +1,57 @@
+;
+; ORIGINAL AUTHOR: DAVID KVILORIA - david@skystargames.com
+;
+; PURPOSE: DRAW `HELLO, WORLD!` USING RAYLIB
+;
+; NATIVE FUNCTION TABLE WITH ADDRESSES
+;  * `print`                addr 0  args  1
+;  * `concat`               addr 1  args  2
+;  * `make_window`          addr 2  args  2
+;  * `process_frame`        addr 3  args  0
+;  * `clear_color_buffer`   addr 4  args  4
+;  * `draw_rect`            addr 5  args  8
+;  * `draw_text`            addr 6  args  8 
+;
+; GLOBAL VARIABLES FROM ENGINE
+;  * `0` MOUSE COORD Y INTEGER
+;  * `1` MOUSE COORD X INTEGER
+
+; PUSH STRING TO `STRINGS TABLE` AT INDEX `0`
+PUSH_STRING          "HELLO, WORLD!"
+
+:init
+    ; CREATE WINDOW
+    PUSH_INT             800         ; WIDTH
+    PUSH_INT             600         ; HEIGHT
+    CALL_NATIVE          2 2         ; CALL `make_window`
+
+; MAIN LOOP
+:loop
+    ; CLEAR THE SCREEN
+    PUSH_INT             255         ; ALPHA
+    PUSH_INT             30          ; BLUE
+    PUSH_INT             20          ; GREEN
+    PUSH_INT             20          ; RED
+    CALL_NATIVE          4 4         ; CALL `clear_color_buffer`
+
+    ; RENDER "HELLO, WORLD"
+    PUSH_INT             255         ; ALPHA
+    PUSH_INT             255         ; BLUE
+    PUSH_INT             255         ; GREEN
+    PUSH_INT             255         ; RED
+
+    PUSH_INT             90          ; FONT SIZE
+
+    PUSH_INT             60          ; Y POSITION
+    PUSH_INT             60          ; X POSITION
+
+    PUSH_INT             0
+    CALL_NATIVE          6 8         ; CALL `draw_text`
+
+    ; PROCESS FRAME
+    CALL_NATIVE          3 0         ; CALL `process_frame`
+
+; LOOP BACK
+JMP                  loop
+
+HALT                 ; NEVER REACHED UNLESS WINDOWS IS CLOSED

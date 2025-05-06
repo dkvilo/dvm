@@ -1,0 +1,29 @@
+; NATIVE FUNCTION TABLE
+;  * print        addr 0  args 1
+
+PUSH_INT          10
+STORE_GLOBAL      0       ; global[0] = counter
+
+:loop_start
+    ; PRINT THE CURRENT VALUE
+    LOAD_GLOBAL    0
+    CALL_NATIVE    0 1    ; print(counter)
+
+    ; DEC `counter`
+    LOAD_GLOBAL    0
+    PUSH_INT       1
+    SUB
+    STORE_GLOBAL   0
+
+    ; `counter` > `0`
+    LOAD_GLOBAL    0
+    PUSH_INT       0
+    GT
+    JNZ            loop_start
+
+    ; RESET `counter` to `10` AND LOOP AGAIN
+    PUSH_INT       10
+    STORE_GLOBAL   0
+    JMP            loop_start
+
+HALT

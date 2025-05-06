@@ -1,0 +1,56 @@
+;
+; ORIGINAL AUTHOR: DAVID KVILORIA - david@skystargames.com
+;
+; PURPOSE: PRINT FIBONACCI NUMBERS USING CUSTOM VM
+;
+; NATIVE FUNCTION TABLE WITH ADDRESSES
+;  * `print`                addr 0  args  1
+;
+; GLOBAL VARIABLES FROM ENGINE
+;  * `0` FIB N (PREVIOUS)
+;  * `1` FIB N+1 (CURRENT)
+;  * `2` REMAINING ITERATION COUNT
+;  * `3` TEMP VALUE FOR NEXT FIB
+;
+
+; INITIALIZE FIBONACCI VALUES
+PUSH_INT             0           ; F0 = 0
+STORE_GLOBAL         0           ; STORE IN GLOBAL[0]
+
+PUSH_INT             1           ; F1 = 1
+STORE_GLOBAL         1           ; STORE IN GLOBAL[1]
+
+PUSH_INT             10          ; NUMBER OF VALUES TO PRINT
+STORE_GLOBAL         2           ; STORE IN GLOBAL[2]
+
+:fib_loop
+    ; PRINT CURRENT FIBONACCI VALUE (F0)
+    LOAD_GLOBAL         0
+    CALL_NATIVE         0 1       ; CALL `print`
+
+    ; COMPUTE NEXT VALUE: F_NEXT = F0 + F1
+    LOAD_GLOBAL         0         ; LOAD F0
+    LOAD_GLOBAL         1         ; LOAD F1
+    ADD
+    STORE_GLOBAL        3         ; STORE F_NEXT IN GLOBAL[3]
+
+    ; UPDATE FIBONACCI STATE
+    LOAD_GLOBAL         1         ; MOVE F1 → F0
+    STORE_GLOBAL        0
+
+    LOAD_GLOBAL         3         ; MOVE F_NEXT → F1
+    STORE_GLOBAL        1
+
+    ; DECREMENT ITERATION COUNTER
+    LOAD_GLOBAL         2
+    PUSH_INT            1
+    SUB
+    STORE_GLOBAL        2
+
+    ; IF COUNTER > 0, CONTINUE LOOP
+    LOAD_GLOBAL         2
+    PUSH_INT            0
+    GT
+    JNZ                 fib_loop
+
+HALT                             ; END OF PROGRAM

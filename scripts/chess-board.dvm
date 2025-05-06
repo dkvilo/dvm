@@ -1,0 +1,147 @@
+;
+; ORIGINAL AUTHOR: DAVID KVILORIA - david@skystargames.com
+;
+; PURPOSE: DRAW A 5x5 CHESS BOARD USING DRAW_RECT
+;
+; NATIVE FUNCTION TABLE WITH ADDRESSES
+;  * `make_window`          addr 2  args  2
+;  * `process_frame`        addr 3  args  0
+;  * `clear_color_buffer`   addr 4  args  4
+;  * `draw_rect`            addr 5  args  8
+;
+
+; STRINGS (NOT USED IN DRAWING BUT CAN BE DISPLAYED IF NEEDED)
+PUSH_STRING          "5x5 Chess Board"
+PUSH_STRING          "Chess Board Demo"
+
+; INITIALIZE WINDOW
+PUSH_INT             800         ; WIDTH
+PUSH_INT             600         ; HEIGHT
+CALL_NATIVE          2 2         ; CALL `make_window`
+
+:game_loop
+    ; CLEAR SCREEN WITH DARK BACKGROUND
+    PUSH_INT         255         ; ALPHA
+    PUSH_INT         30          ; BLUE
+    PUSH_INT         30          ; GREEN
+    PUSH_INT         30          ; RED
+    CALL_NATIVE      4 4         ; CALL `clear_color_buffer`
+
+    ; CHESS BOARD PARAMETERS
+    PUSH_INT         250
+    STORE_GLOBAL     10          ; BOARD X
+    PUSH_INT         150
+    STORE_GLOBAL     11          ; BOARD Y
+    PUSH_INT         60
+    STORE_GLOBAL     12          ; SQUARE SIZE
+
+    ; LIGHT SQUARE COLORS (RGBA)
+    PUSH_INT         255
+    STORE_GLOBAL     20          ; ALPHA
+    PUSH_INT         150
+    STORE_GLOBAL     21          ; BLUE
+    PUSH_INT         200
+    STORE_GLOBAL     22          ; GREEN
+    PUSH_INT         220
+    STORE_GLOBAL     23          ; RED
+
+    ; DARK SQUARE COLORS (RGBA)
+    PUSH_INT         255
+    STORE_GLOBAL     30          ; ALPHA
+    PUSH_INT         50
+    STORE_GLOBAL     31          ; BLUE
+    PUSH_INT         80
+    STORE_GLOBAL     32          ; GREEN
+    PUSH_INT         100
+    STORE_GLOBAL     33          ; RED
+
+    ; INIT ROW COUNTER
+    PUSH_INT         0
+    STORE_GLOBAL     40
+
+:row_loop
+    ; INIT COLUMN COUNTER
+    PUSH_INT         0
+    STORE_GLOBAL     41
+
+:col_loop
+    ; CALCULATE X POSITION
+    LOAD_GLOBAL      10          ; BOARD X
+    LOAD_GLOBAL      41          ; COLUMN
+    LOAD_GLOBAL      12          ; SQUARE SIZE
+    MUL
+    ADD
+    STORE_GLOBAL     50          ; CURRENT X
+
+    ; CALCULATE Y POSITION
+    LOAD_GLOBAL      11          ; BOARD Y
+    LOAD_GLOBAL      40          ; ROW
+    LOAD_GLOBAL      12
+    MUL
+    ADD
+    STORE_GLOBAL     51          ; CURRENT Y
+
+    ; DETERMINE SQUARE COLOR (ALTERNATING)
+    LOAD_GLOBAL      40          ; ROW
+    LOAD_GLOBAL      41          ; COL
+    ADD
+    PUSH_INT         2
+    MOD
+    STORE_GLOBAL     52          ; PARITY
+
+    LOAD_GLOBAL      52
+    JNZ              dark_square
+
+    ; USE LIGHT SQUARE COLOR
+    LOAD_GLOBAL      23          ; RED
+    LOAD_GLOBAL      22          ; GREEN
+    LOAD_GLOBAL      21          ; BLUE
+    LOAD_GLOBAL      20          ; ALPHA
+    JMP              draw_square
+
+:dark_square
+    ; USE DARK SQUARE COLOR
+    LOAD_GLOBAL      33          ; RED
+    LOAD_GLOBAL      32          ; GREEN
+    LOAD_GLOBAL      31          ; BLUE
+    LOAD_GLOBAL      30          ; ALPHA
+
+:draw_square
+    ; DRAW RECTANGLE
+    LOAD_GLOBAL      12          ; HEIGHT
+    LOAD_GLOBAL      12          ; WIDTH
+    LOAD_GLOBAL      51          ; Y POSITION
+    LOAD_GLOBAL      50          ; X POSITION
+    CALL_NATIVE      5 8         ; CALL `draw_rect`
+
+    ; INCREMENT COLUMN
+    LOAD_GLOBAL      41
+    PUSH_INT         1
+    ADD
+    STORE_GLOBAL     41
+
+    ; CONTINUE COL LOOP?
+    LOAD_GLOBAL      41
+    PUSH_INT         5
+    LT
+    JNZ              col_loop
+
+    ; INCREMENT ROW
+    LOAD_GLOBAL      40
+    PUSH_INT         1
+    ADD
+    STORE_GLOBAL     40
+
+    ; CONTINUE ROW LOOP?
+    LOAD_GLOBAL      40
+    PUSH_INT         5
+    LT
+    JNZ              row_loop
+
+    ; PROCESS FRAME (UPDATES INPUTS ETC.)
+    CALL_NATIVE      3 0
+
+    ; LOOP
+    JMP              game_loop
+
+HALT                              ; NEVER REACHED UNLESS WINDOW IS CLOSED

@@ -1,0 +1,96 @@
+;
+; ORIGINAL AUTHOR: DAVID KVILORIA - david@skystargames.com
+;
+; PURPOSE: DRAW UI WITH RECTANGLES AND TEXT + MOUSE FOLLOW RECTANGLE
+;
+; NATIVE FUNCTION TABLE WITH ADDRESSES
+;  * `print`                addr 0  args  1
+;  * `concat`               addr 1  args  2
+;  * `make_window`          addr 2  args  2
+;  * `process_frame`        addr 3  args  0
+;  * `clear_color_buffer`   addr 4  args  4
+;  * `draw_rect`            addr 5  args  8
+;  * `draw_text`            addr 6  args  8   ; (text_id, fontSize, y, x, a, b, g, r)
+;  * `randint`              addr 7  args  2   ; (min, max) → int
+;
+; GLOBAL VARIABLES FROM ENGINE
+;  0 = Mouse Y position (int)
+;  1 = Mouse X position (int)
+;
+
+; LOAD STRING RESOURCES
+PUSH_STRING           "Virtual Machine 1"
+PUSH_STRING           "Virtual Machine 2"
+PUSH_STRING           "Virtual Machine 3"
+PUSH_STRING           "Virtual Machine 4"
+PUSH_STRING           "Virtual Machine 5"
+
+; INIT WINDOW
+PUSH_INT              800       ; WIDTH
+PUSH_INT              600       ; HEIGHT
+CALL_NATIVE           2 2       ; make_window(800, 600)
+
+:game_loop
+    ; CLEAR SCREEN
+    PUSH_INT          255       ; A
+    PUSH_INT          30        ; B
+    PUSH_INT          20        ; G
+    PUSH_INT          20        ; R
+    CALL_NATIVE       4 4       ; clear_color_buffer(r, g, b, a)
+
+    ; STATIC RECTANGLE (GREENISH)
+    PUSH_INT          255       ; A
+    PUSH_INT          0         ; B
+    PUSH_INT          200       ; G
+    PUSH_INT          50        ; R
+    PUSH_INT          100       ; HEIGHT
+    PUSH_INT          300       ; WIDTH
+    PUSH_INT          50        ; Y
+    PUSH_INT          50        ; X
+    CALL_NATIVE       5 8       ; draw_rect(x, y, w, h, r, g, b, a)
+
+    ; MOUSE-FOLLOW RECTANGLE (RED)
+    PUSH_INT          255       ; A
+    PUSH_INT          0         ; B
+    PUSH_INT          0         ; G
+    PUSH_INT          255       ; R
+    PUSH_INT          50        ; HEIGHT
+    PUSH_INT          50        ; WIDTH
+    LOAD_GLOBAL       0         ; Y = mouse Y
+    LOAD_GLOBAL       1         ; X = mouse X
+    CALL_NATIVE       5 8       ; draw_rect
+
+    ; RANDOM NUMBER BETWEEN 0 AND 3 (inclusive)
+    PUSH_INT          0
+    PUSH_INT          4
+    CALL_NATIVE       7 2       ; randint(0, 3)
+    STORE_GLOBAL      3         ; Save result for indexing text
+
+    ; DRAW TEXT USING RANDOM INDEX
+    PUSH_INT          255       ; A
+    PUSH_INT          255       ; B
+    PUSH_INT          255       ; G
+    PUSH_INT          255       ; R
+    PUSH_INT          40        ; FONT SIZE
+    PUSH_INT          150       ; Y
+    PUSH_INT          250       ; X
+    LOAD_GLOBAL       3         ; TEXT ID
+    CALL_NATIVE       6 8       ; draw_text(text_id, x, y, size, r, g, b, a)
+
+    ; DRAW SECOND TEXT LABEL DIRECTLY (text ID 1 = "Virtual Machine 2")
+    PUSH_INT          255       ; A
+    PUSH_INT          255       ; B
+    PUSH_INT          255       ; G
+    PUSH_INT          255       ; R
+    PUSH_INT          40        ; FONT SIZE
+    PUSH_INT          350       ; Y
+    PUSH_INT          350       ; X
+    PUSH_INT          1         ; TEXT ID
+    CALL_NATIVE       6 8       ; draw_text
+
+    ; PROCESS FRAME
+    CALL_NATIVE       3 0       ; process_frame()
+
+    JMP               game_loop ; loop forever
+
+HALT                            ; not reached

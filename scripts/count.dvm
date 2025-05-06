@@ -1,0 +1,29 @@
+;
+; COUNTDOWN FROM 10 TO 1
+;
+; NATIVE FUNCTION TABLE
+;  * print        addr 0  args 1
+;
+
+; INIT COUNTER
+PUSH_INT          10
+STORE_GLOBAL      0       ; global[0] = counter
+
+:loop_start
+    ; PRINT CURRENT VALUE
+    LOAD_GLOBAL    0
+    CALL_NATIVE    0 1    ; print(counter)
+
+    ; DECREMENT COUNTER
+    LOAD_GLOBAL    0
+    PUSH_INT       1
+    SUB
+    STORE_GLOBAL   0
+
+    ; CHECK IF COUNTER > 0
+    LOAD_GLOBAL    0
+    PUSH_INT       0
+    GT
+    JNZ            loop_start
+
+HALT                       ; done
