@@ -27,3 +27,6 @@ To see sample programs check scripts
 ./bin/dvmc ./scripts/hello-world.dvm ./bin/hello-world
 ./bin/dvm ./bin/hello-world
 ```
+
+# Dependencies
+- Raylib - Window, handling input and drawing
