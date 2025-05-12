@@ -29,4 +29,4 @@ To see sample programs check scripts
 ```
 
 # Dependencies
-- Raylib - Window, handling input and drawing
+- SDL3 - Window, handling input and drawing

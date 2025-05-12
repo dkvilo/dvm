@@ -1,7 +1,7 @@
 ;
 ; ORIGINAL AUTHOR: DAVID KVILORIA - david@skystargames.com
 ;
-; PURPOSE: DRAW `HELLO, WORLD!` USING RAYLIB
+; PURPOSE: DRAW `HELLO, WORLD!` USING SDL3
 ;
 ; NATIVE FUNCTION TABLE WITH ADDRESSES
 ;  * `print`                addr 0  args  1
