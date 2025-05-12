@@ -1,6 +1,7 @@
+#include <stdio.h>
+
 #include "engine.h"
 #include "command.h"
-#include <stdio.h>
 
 void engine_run( int argc, char **argv )
 {

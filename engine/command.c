@@ -6,6 +6,10 @@
 EngineCommand gCommands[MAX_COMMANDS] = { 0 };
 int32_t       gCommandsCount          = 0;
 
+static bool          running  = true;
+static SDL_Window   *window   = NULL;
+static SDL_Renderer *renderer = NULL;
+
 void native_clear_color_buffer( VM *vm )
 {
 	Value R = vm->stack[vm->sp--];
@@ -15,7 +19,7 @@ void native_clear_color_buffer( VM *vm )
 
 	gCommands[gCommandsCount++] = (EngineCommand){
 	    .cType = CT_Clear,
-	    .data  = { .clearCommand = (Color){ R.data.i, G.data.i, B.data.i, A.data.i } },
+	    .data  = { .clearCommand = (SDL_Color){ R.data.i, G.data.i, B.data.i, A.data.i } },
 	};
 }
 
@@ -51,7 +55,7 @@ void native_draw_text( VM *vm )
 	        {
 	            .drawTextCommand =
 	                {
-	                    .color    = (Color){ R.data.i, G.data.i, B.data.i, A.data.i },
+	                    .color    = (SDL_Color){ R.data.i, G.data.i, B.data.i, A.data.i },
 	                    .x        = X.data.i,
 	                    .y        = Y.data.i,
 	                    .fontSize = FontSize.data.i,
@@ -81,7 +85,7 @@ void native_draw_rect( VM *vm )
 	        {
 	            .drawRectCommand =
 	                {
-	                    .color = (Color){ R.data.i, G.data.i, B.data.i, A.data.i },
+	                    .color = (SDL_Color){ R.data.i, G.data.i, B.data.i, A.data.i },
 	                    .x     = X.data.i,
 	                    .y     = Y.data.i,
 	                    .w     = W.data.i,
@@ -91,22 +95,58 @@ void native_draw_rect( VM *vm )
 	};
 }
 
+void native_handle_events()
+{
+	SDL_Event event;
+	while ( SDL_PollEvent( &event ) )
+	{
+		if ( event.type == SDL_EVENT_QUIT )
+		{
+			running = false;
+		}
+	}
+}
+
+bool key_down[SDL_SCANCODE_COUNT]            = { 0 };
+bool key_down_last_frame[SDL_SCANCODE_COUNT] = { 0 };
+bool key_pressed[SDL_SCANCODE_COUNT]         = { 0 };
+
+void native_update_scancodes_input_state()
+{
+	const bool *kb_state = SDL_GetKeyboardState( NULL );
+	for ( int32_t i = 0; i < SDL_SCANCODE_COUNT; ++i )
+	{
+		key_down[i]            = kb_state[i];
+		key_pressed[i]         = key_down[i] && !key_down_last_frame[i];
+		key_down_last_frame[i] = key_down[i];
+	}
+}
+
+void native_set_mouse_position_to_vm( VM *vm )
+{
+	float x, y;
+	SDL_GetMouseState( &x, &y );
+
+	vm->globals[0] = make_int( y );
+	vm->globals[1] = make_int( x );
+}
+
 void native_process_frame( VM *vm )
 {
-	if ( WindowShouldClose() )
+	native_handle_events();
+	native_update_scancodes_input_state();
+	native_set_mouse_position_to_vm( vm );
+
+	if ( !running )
 	{
 		vm->running = 0;
 	}
 
-	if ( IsKeyPressed( KEY_R ) )
+	if ( key_pressed[SDL_SCANCODE_R] )
 	{
+		printf( "R Pressed\n" );
 		vm_reset( vm );
 	}
-
-	vm->globals[0] = make_int( GetMouseY() );
-	vm->globals[1] = make_int( GetMouseX() );
-
-	BeginDrawing();
 
 	for ( size_t i = 0; i < gCommandsCount; i++ )
 	{
@@ -115,19 +155,24 @@ void native_process_frame( VM *vm )
 		{
 		case CT_Clear:
 		{
-			ClearBackground( cmd.data.clearCommand.color );
+			SDL_Color color = cmd.data.clearCommand.color;
+			SDL_SetRenderDrawColor( renderer, color.r, color.g, color.b, color.a );
+			SDL_RenderClear( renderer );
 		}
 		break;
 
 		case CT_DrawRect:
 		{
-			int   x     = cmd.data.drawRectCommand.x;
-			int   y     = cmd.data.drawRectCommand.y;
-			int   w     = cmd.data.drawRectCommand.w;
-			int   h     = cmd.data.drawRectCommand.h;
-			Color color = cmd.data.drawRectCommand.color;
+			SDL_Color color = cmd.data.drawRectCommand.color;
+			SDL_SetRenderDrawColor( renderer, color.r, color.g, color.b, color.a );
 
-			DrawRectangle( x, y, w, h, color );
+			const SDL_FRect rect = {
+			    .h = cmd.data.drawRectCommand.h,
+			    .w = cmd.data.drawRectCommand.w,
+			    .x = cmd.data.drawRectCommand.x,
+			    .y = cmd.data.drawRectCommand.y,
+			};
+			SDL_RenderFillRect( renderer, &rect );
 		}
 		break;
 
@@ -137,9 +182,14 @@ void native_process_frame( VM *vm )
 			int         x        = cmd.data.drawTextCommand.x;
 			int         y        = cmd.data.drawTextCommand.y;
 			int         fontSize = cmd.data.drawTextCommand.fontSize;
-			Color       color    = cmd.data.drawTextCommand.color;
+			SDL_Color   color    = cmd.data.drawTextCommand.color;
 
-			DrawText( str, x, y, fontSize, color );
+			SDL_SetRenderDrawColor( renderer, color.r, color.g, color.b, color.a );
+			float scale = fontSize / SDL_DEBUG_TEXT_FONT_CHARACTER_SIZE;
+
+			SDL_SetRenderScale( renderer, scale, scale );
+			SDL_RenderDebugText( renderer, (float)x / scale, (float)y / scale, str );
+			SDL_SetRenderScale( renderer, 1, 1 );
 		}
 		break;
 
@@ -148,7 +198,8 @@ void native_process_frame( VM *vm )
 		}
 	}
 
-	EndDrawing();
+	SDL_RenderTexture( renderer, NULL, NULL, NULL );
+	SDL_RenderPresent( renderer );
 
 	gCommandsCount = 0;
 }
@@ -184,8 +235,11 @@ void native_make_window( VM *vm )
 		return;
 	}
 
-	InitWindow( width.data.i, height.data.i, "Window" );
-	SetTargetFPS( 60 );
+	SDL_WindowFlags FLAGS = SDL_WINDOW_OPENGL;
+	if ( !SDL_CreateWindowAndRenderer( "A Window", width.data.i, height.data.i, FLAGS, &window, &renderer ) )
+	{
+		SDL_LogError( SDL_LOG_CATEGORY_APPLICATION, "Error: %s\n", SDL_GetError() );
+	}
 
 	printf( "[VM] Window Was created (%dx%d)!\n", width.data.i, height.data.i );
 }

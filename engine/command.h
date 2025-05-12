@@ -2,7 +2,8 @@
 #define __ME_ENGINE_COMMAND_H_
 
 #include <stdint.h>
-#include "raylib.h"
+#include <SDL3/SDL.h>
+
 #include "../vm/vm.h"
 
 #define MAX_COMMANDS 1024
@@ -16,19 +17,19 @@ typedef enum CommandType
 
 typedef struct ClearCommand
 {
-	Color color;
+	SDL_Color color;
 } ClearCommand;
 
 typedef struct DrawRectCommand
 {
-	Color color;
-	int   x, y;
-	int   w, h;
+	SDL_Color color;
+	int       x, y;
+	int       w, h;
 } DrawRectCommand;
 
 typedef struct DrawTextCommand
 {
-	Color       color;
+	SDL_Color   color;
 	int         fontSize;
 	int         x, y;
 	const char *text;

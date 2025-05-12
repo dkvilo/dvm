@@ -1,7 +1,7 @@
 CC := cc
 
 build:
-	$(CC) main.c -o bin/dvm -lraylib -lm
+	$(CC) main.c -o bin/dvm -lSDL3 -lm
 
 dvmc:
 	$(CC) compiler/assembler.c -o bin/dvmc
