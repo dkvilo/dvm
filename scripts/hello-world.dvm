@@ -40,7 +40,7 @@ PUSH_STRING          "HELLO, WORLD!"
     PUSH_INT             255         ; GREEN
     PUSH_INT             255         ; RED
 
-    PUSH_INT             90          ; FONT SIZE
+    PUSH_INT             56          ; FONT SIZE
 
     PUSH_INT             60          ; Y POSITION
     PUSH_INT             60          ; X POSITION

@@ -71,7 +71,7 @@ CALL_NATIVE           2 2       ; make_window(800, 600)
     PUSH_INT          255       ; B
     PUSH_INT          255       ; G
     PUSH_INT          255       ; R
-    PUSH_INT          40        ; FONT SIZE
+    PUSH_INT          30        ; FONT SIZE
     PUSH_INT          150       ; Y
     PUSH_INT          250       ; X
     LOAD_GLOBAL       3         ; TEXT ID
@@ -82,7 +82,7 @@ CALL_NATIVE           2 2       ; make_window(800, 600)
     PUSH_INT          255       ; B
     PUSH_INT          255       ; G
     PUSH_INT          255       ; R
-    PUSH_INT          40        ; FONT SIZE
+    PUSH_INT          30        ; FONT SIZE
     PUSH_INT          350       ; Y
     PUSH_INT          350       ; X
     PUSH_INT          1         ; TEXT ID
